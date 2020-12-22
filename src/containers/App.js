@@ -4,46 +4,37 @@ import "./App.css";
 import CardList from "../components/CardList";
 import SearchBox from "../components/SearchBox";
 import Scroll from "../components/Scroll";
-import axios from "axios";
 import ErrorBoundary from "../components/ErrorBoundary"
-import {setSearchField} from '../actions'
+import {requestRobots, setSearchField} from '../actions'
 
 const mapStateToProps = state => {
   return {
-    searchField : state.searchField
+    searchField : state.searchRobots.searchField,
+    robots : state.requestRobots.robots,
+    isPending : state.requestRobots.isPending,
+    error : state.requestRobots.error
   }
 }
 
 const mapDispatchToProps = dispatch => {
   return {
-    onSearchChange : (event) => dispatch(setSearchField(event.target.value))
+    onSearchChange : (event) => dispatch(setSearchField(event.target.value)),
+    onRequestRobots : () => requestRobots(dispatch)
   }
 }
 
 class App extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      robots: []
-    };
-  }
 
   componentDidMount() {
-    axios
-      .get("https://jsonplaceholder.typicode.com/users")
-      .then((response) => {
-        return response.data;
-      })
-      .then((users) => this.setState({ robots: users }));
+    this.props.onRequestRobots()
   }
 
   render() {
-    const { robots } = this.state;
-    const { searchField, onSearchChange } = this.props;
+    const { searchField, onSearchChange, robots, isPending } = this.props;
     const filteredRobots = robots.filter((robot) =>
       robot.name.toLowerCase().includes(searchField.toLowerCase())
     );
-    return !robots.length ? (
+    return isPending ? (
       <h1 className="tc">Loading</h1>
     ) : (
       <div className="tc">
